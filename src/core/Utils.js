@@ -77,6 +77,9 @@ class Utils {
     }
 
     static addAditionalQueryParameterToUrl(url, params) {
+        if (typeof url.then === 'function') {
+            return url.then((url) => this.addAditionalQueryParameterToUrl(url, params))
+        }
         try {
             if (!params || params.length === 0) {
                 return url;

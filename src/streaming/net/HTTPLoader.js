@@ -275,10 +275,10 @@ function HTTPLoader(cfg) {
                 headers = cmcdModel.getHeaderParameters(request);
             }
         }
+
         request.url = modifiedUrl;
         const verb = request.checkExistenceOnly ? HTTPRequest.HEAD : HTTPRequest.GET;
         const withCredentials = mediaPlayerModel.getXHRWithCredentialsForType(request.type);
-
 
         httpRequest = {
             url: modifiedUrl,
@@ -301,7 +301,14 @@ function HTTPLoader(cfg) {
         if (isNaN(request.delayLoadingTime) || now >= request.delayLoadingTime) {
             // no delay - just send
             requests.push(httpRequest);
-            loader.load(httpRequest);
+            if (httpRequest.url && typeof httpRequest.url.then === 'function') {
+                httpRequest.url.then((url) => {
+                    httpRequest.url = url
+                    loader.load(httpRequest);
+                })
+            } else {
+                loader.load(httpRequest);
+            }
         } else {
             // delay
             let delayedRequest = { httpRequest: httpRequest };
@@ -316,7 +323,14 @@ function HTTPLoader(cfg) {
                     requestStartTime = new Date();
                     lastTraceTime = requestStartTime;
                     requests.push(delayedRequest.httpRequest);
-                    loader.load(delayedRequest.httpRequest);
+                    if (delayedRequest.httpRequest.url && typeof delayedRequest.httpRequest.url.then === 'function') {
+                        delayedRequest.httpRequest.url.then((url) => {
+                            httpRequest.url = url
+                            loader.load(delayedRequest.httpRequest);
+                        })
+                    } else {
+                        loader.load(delayedRequest.httpRequest);
+                    }
                 } catch (e) {
                     delayedRequest.httpRequest.onerror();
                 }
